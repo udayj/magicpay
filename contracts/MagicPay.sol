@@ -7,26 +7,30 @@ contract MagicPay {
 
     struct Payment {
         uint256 id;
-        uint256 email;
+        string email;
         uint256 password;
         uint256 amount;
         uint8 status;
+        uint256 creationTimestamp;
+        uint256 interestEarned;
+        uint256 klima;
     }
+    
     uint256 public id;
     mapping (uint256 => Payment) idToPayment;
     Payment[] public payments;
-    event PaymentCreated(uint256 id,uint256 email, uint256 password, uint256 amount);
+    event PaymentCreated(uint256 id,string email, uint256 password, uint256 amount);
 
-    function createPayment(uint256 email,uint256 password,uint256 amount) public payable {
+    function createPayment(string memory email,uint256 password,uint256 amount) public payable {
 
         require(msg.value==amount,"Amount given differs from amount intended");
         uint256 currentId = id;
-        Payment memory payment = Payment (currentId, email,password,amount,0); 
+        Payment memory payment = Payment (currentId, email,password,amount,0,block.timestamp,0,0); 
         payments.push(payment);
         idToPayment[currentId]=payments[payments.length-1];
         id++;
         console.log("Payment created");
-        console.log("email hash:",email);
+        console.log("email :",email);
         console.log("password hash:",password);
         console.log("amount:",amount);
         console.log("id:",currentId);
@@ -42,4 +46,13 @@ contract MagicPay {
         console.log("status:",payment.status);
         return payment;
     }
+
+    function sendPayment(address receiver, uint256 _id, uint256 password) public returns(bool) {
+        Payment memory payment=idToPayment[_id];
+        require(password == payment.password,"Incorrect Password");
+        uint256 amount = payment.amount;
+        (bool sent,) = receiver.call{value:amount}("");
+        return sent;
+    }   
+
 }
