@@ -522,7 +522,7 @@ class NameForm extends React.Component {
             Magic Pay
           </h1>
           <h4>
-            Send crypto to people without wallets (and save the planet while doing so)
+            Send crypto to people without wallets (and save the planet while doing so) - Polygon Mumbai testnet only
           </h4>
         </Col>
       </Row>
@@ -664,9 +664,31 @@ function App() {
 
 
   const renderNotConnectedContainer = () => (
-    <button onClick={connectWallet} className="cta-button connect-wallet-button">
+    <React.Fragment>
+        
+
+    <Row>
+      <Col>
+        <h1>
+          Magic Pay
+        </h1>
+        <h4>
+          Send crypto to people without wallets (and save the planet while doing so) - Polygon Mumbai testnet only
+          Chain ID 80001
+        </h4>
+      </Col>
+    </Row>
+    <br></br>
+      <br></br>
+      <hr/>
+    <Row>
+      <Col>
+    <Button onClick={connectWallet} className="success connect-wallet-button" size="sm">
       Connect to Wallet
-    </button>
+    </Button>
+    </Col>
+    </Row>
+    </React.Fragment>
   );
 
   return (
@@ -674,8 +696,8 @@ function App() {
   
       {view == 'redeem'? <RedeemForm />: null}
       
-      {currentAccount === "" && view =='send' ? renderNotConnectedContainer() : null }
-      {currentAccount !="" && view=='send'? <NameForm/> : null}
+      {currentAccount === "" && view !=='redeem' ? renderNotConnectedContainer() : null }
+      {currentAccount !="" && view !=='redeem'? <NameForm/> : null}
       
     
     </Container>
