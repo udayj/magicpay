@@ -1,15 +1,13 @@
-# Basic Sample Hardhat Project
+# Basic Idea behind the Dapp
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+So, the idea itself is very simple. The Dapp enables you to **send crypto** (MATIC right now) to any person (Alice) **without a wallet**. You deposit funds into the Dapp and it sends a link to Alice's email id. Alice clicks the link and enters the password (you would communicate this password to Alice offline/online). The Dapp generates a key-pair on Alice's machine and sends the crypto you had deposited to this newly generated public address. Only **Alice has the private key** which she now has to use to create a wallet on, for instance, Metamask. While we wait for Alice to redeem the crypto, we deposit the funds into **Bentobox to earn interest**. Also, if Alice doesnt redeem the crypto in, lets say, 5 days (**Chainlink Keepers helps automate the check** after the wait period), the crypto is refunded back to you. Finally, we **buy $KLIMA** using the interest that was earned from Bentobox and maybe burn it. _This way we also help do our bit to save the climate using money legos while we onboard more people into the crypto ecosystem_. 
 
-Try running some of the following tasks:
+createPayment(string memory email,uint256 password,uint256 amount) - is the starting point which initiates a payment
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+sendPayment(address receiver, uint256 _id, uint256 password) - is the function called by the front end when a user claims the payment. The receiver address is actually generated on the front-end and the private key is known only to the person redeeming the crypto.
+
+performUpkeep(bytes calldata /*performData*/) - is the function which is called by Chainlink Keepers to initiate a refund to the person who had deposited crypto.
+
+
+
+

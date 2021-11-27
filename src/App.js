@@ -21,7 +21,7 @@ var url = new URL(url_string);
 var view = url.searchParams.get("view");
 var id=url.searchParams.get("id");
 
-const CONTRACT_ADDRESS='0x4C6e7f242118c5851a4fa35d1686e0fAbdC6A8A6';
+const CONTRACT_ADDRESS='0xad0145D880b83eDca54772fb65eEf593EcC54311';
 
 
 function DataTable (props) {
@@ -52,12 +52,23 @@ const renderTableData = () => {
   return data.map((data_ind, index) => {
      
     console.log(data_ind);
+
+    var status="pending";
+    if(data_ind.status=="3") {
+      status="refunded";
+    }
+    else if(data_ind.status=="2") {
+      status="redeemed";
+    }
+
      return (
         <tr>
            
            <td>{data_ind.email}</td>
            <td>{data_ind.amount}</td>
-           <td>{data_ind.status}</td>
+           <td>{status}</td>
+           <td>{data_ind.klima}</td>
+           <td>{data_ind.interest_earned}</td>
         </tr>
      );
   });
@@ -72,6 +83,8 @@ return (
          <th>Email Id</th>
       <th>Amount</th>
       <th>Status</th>
+      <th>Klima</th>
+      <th>Interest Earned</th>
 
          </tr>
          </thead>
@@ -136,11 +149,11 @@ return (
 function NewWallet(props) {
   return (
     <div>
-  <div>
+  <div class="mb-3">
     Your funds have been deposited at <b> {props.address} </b>- this is the public address
   </div>
   <div>
-    The private key for your account is <b> {props.private_key} </b>. Do not share with anyone.
+    The private key for your account is <b> {props.private_key} </b>. <br></br> Do not share with anyone.
     Create a wallet with Metamask (you will need to use the private key above) to use the funds received.
   </div>
   </div>)
@@ -183,7 +196,7 @@ class RedeemForm extends React.Component {
     
 
     let id = ethers.BigNumber.from(this.state.id);
-    alert(id);
+    
     let password =ethers.utils.id(this.state.password);
     let privateKey = "0x8df48958afc88c4dfc318ecc8ff0fdde4700bcea1ba2071a3878b4a19cfaca55";
     let sendAddress = "0x40C93BCd74254aDeBA26bE38e144705c3b5c9F35";
@@ -202,7 +215,7 @@ class RedeemForm extends React.Component {
       from: sendAddress,
       to: CONTRACT_ADDRESS,
       nonce: provider.getTransactionCount(sendAddress,"latest"),
-      gasLimit:100000,
+      gasLimit:900000,
       gasPrice: currentGasPrice,
       data:callData
     }
@@ -212,7 +225,7 @@ class RedeemForm extends React.Component {
     try {
       walletSigner.sendTransaction(tx).then((transaction) => {
         console.dir(transaction);
-        alert("Payment Sent");
+        alert("Payment Received");
       });
     }
       catch(error) {}
@@ -256,8 +269,11 @@ class RedeemForm extends React.Component {
         <Col>
         <div>
           <label>
-            Password
-            <input type="text" value={this.state.password} onChange={this.handlePasswordChange} />
+            <div class="mb-3">
+             
+            <input type="text" value={this.state.password} onChange={this.handlePasswordChange} placeholder="enter password here"/>
+            <br></br>
+            </div>
             <Button onClick={this.redeemPayment}>Redeem Payment</Button>
           </label>
           </div>
@@ -302,6 +318,14 @@ class NameForm extends React.Component {
                     {
                       Header:'Status',
                       accessor:'status'
+                    },
+                    {
+                      Header: 'Klima',
+                      accessor:'klima'
+                    },
+                    {
+                      Header:'Interest Earned',
+                      accessor:'interest_earned'
                     }
                   ],
                   data:[],
@@ -322,6 +346,8 @@ class NameForm extends React.Component {
   handleAddressChange(event) {
     this.setState({address:event.target.value});
   }
+
+
   async getBalance() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     let balance = await provider.getBalance(this.state.address);
@@ -334,9 +360,19 @@ class NameForm extends React.Component {
       magicPay.abi,
       signer
         );
-    var status = await payContract.checkValidityUpkeep();
+    /*var status = await payContract.checkValidityUpkeep();
     console.log("status:",status);
+    var share = await payContract.getShareBentoForPayment(0);
+    console.log("share:",share.toString());
+
+    var payment = await payContract.getPayment(0);
+    console.dir(payment);
+    console.log(payment);
+
+    await payContract.performUpkeep(0);*/
   }
+
+
   handleEmailChange(event) {
     this.setState({emailValue: event.target.value});
   }
@@ -410,6 +446,8 @@ class NameForm extends React.Component {
     let emails=payments[0];
     let amounts=payments[1];
     let statuses=payments[2];
+    let klimas=payments[3];
+    let interests=payments[4];
     
     var length = emails.length;
     var data_new =[];
@@ -417,7 +455,9 @@ class NameForm extends React.Component {
       data_new.push( {
         'email':emails[i],
         'amount':amounts[i].toString(),
-        'status':statuses[i]
+        'status':statuses[i],
+        'klima':klimas[i].toString(),
+        'interest_earned':interests[i].toString()
       });
     }
     console.log('New Data:',data_new);
@@ -488,12 +528,14 @@ class NameForm extends React.Component {
       </Row>
       <br></br>
         <br></br>
+        <hr/>
       <Row>
         
         <Col className="md-3">
       
     <Form onSubmit={this.handleSubmit}>
   <Form.Group className="md-3" controlId="formBasicEmail">
+    <br></br>
     <Form.Label>Email address</Form.Label>
     <Form.Control type="email" placeholder="Enter email" value={this.state.emailValue} onChange={this.handleEmailChange}/>
     
@@ -505,7 +547,7 @@ class NameForm extends React.Component {
   </Form.Group>
   
   <Form.Group className="md-3" controlId="formBasicPassword">
-    <Form.Label>Amount (in Wei)</Form.Label>
+    <Form.Label>Amount (in Matic)</Form.Label>
     <Form.Control type="text" placeholder="Amount" value={this.state.amountValue} onChange={this.handleAmountChange}/>
   </Form.Group>
   <br/>
@@ -518,15 +560,20 @@ class NameForm extends React.Component {
 
 </br>
 <label>
-          <input type="text" value={this.state.address} onChange={this.handleAddressChange} />
+          <div class="mb-3">
+          <input type="text" value={this.state.address} onChange={this.handleAddressChange} /> 
+          </div>
         </label>
+        <br></br>
 <Button variant="secondary" onClick={this.getBalance}>Get Balance</Button>
 {this.state.address!=0? <Balance balance={this.state.balanceOfAddress} />:null}
 
 </Col>
 
 <Col>
-      Activity <Button variant="primary" onClick ={this.refresh}> Refresh </Button>
+      <div class="mb-3">
+      Activity Dashboard - <Button variant="success" size="sm" onClick ={this.refresh}> Refresh </Button>
+      </div>
       <Row>
         <Col>
        <DataTable col={this.state.col} data={this.state.data} />
