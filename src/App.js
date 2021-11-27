@@ -22,7 +22,7 @@ var view = url.searchParams.get("view");
 var id=url.searchParams.get("id");
 
 const CONTRACT_ADDRESS='0xad0145D880b83eDca54772fb65eEf593EcC54311';
-
+const BASE_URL=process.env.REACT_APP_BASE_URL;
 
 function DataTable (props) {
 
@@ -191,7 +191,7 @@ class RedeemForm extends React.Component {
 
   async redeemPayment() {
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.getDefaultProvider("https://polygon-mumbai.g.alchemy.com/v2/TzL04FnJ8Nk1b7Nv7bfZ9NCx2iEdyLH3");
     const signer = provider.getSigner();
     
 
@@ -410,7 +410,7 @@ class NameForm extends React.Component {
       from_name: "Magic Pay",
       reply_to: "no-reply@magicpay.com",
       to_name:email,
-      message: "You have been sent crypto...redeem now at http://localhost:3000/?view=redeem&id="+id.toString()
+      message: "You have been sent crypto...redeem now at "+BASE_URL+"?view=redeem&id="+id.toString()
     }
     console.log("http://localhost:3000/?view=redeem&id="+id.toString());
     let template_id="template_6dlpaqv";
@@ -442,7 +442,7 @@ class NameForm extends React.Component {
     var payments = await payContract.getPaymentsForAddress();
     console.dir(payments);
     console.log(payments);
-
+    console.log(BASE_URL);
     let emails=payments[0];
     let amounts=payments[1];
     let statuses=payments[2];
