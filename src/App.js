@@ -1,3 +1,5 @@
+// WARNING: SPAGHETTI CODE AHEAD
+
 import logo from './logo.svg';
 //import './App.css';
 import React, {useEffect, useState} from 'react';
@@ -14,36 +16,24 @@ import  {useTable} from 'react-table';
 import ReactTable from 'react-table';
 
 
-//private key for mumbai testnet new account 0x8e3bf7b69da0c2ddf1eb9b2293413753a83e6afe88b59fb1848ee1cf9f2bfc26 
 
 var url_string = window.location.href;
 var url = new URL(url_string);
+
+//the view variable controls whether we show the send payment screen or the redeem payment screen
+//will be changed to proper page structure
 var view = url.searchParams.get("view");
 var id=url.searchParams.get("id");
 
+//the magicpay.sol smart contract address - todo - put in a config file
 const CONTRACT_ADDRESS='0xad0145D880b83eDca54772fb65eEf593EcC54311';
 const BASE_URL=process.env.REACT_APP_BASE_URL;
 
+
+//React component for table showing the activity dashboard
 function DataTable (props) {
 
-/*console.log(props);
 
-const columns = React.useMemo(
-  () => props.col,[]
-);
-const data = React.useMemo(
-  () => props.data,[]
-);
-const {
-  getTableProps,
-  getTableBodyProps,
-  headerGroups,
-  rows,
-  prepareRow,
-} = useTable({ columns, data });
-
-console.dir(rows);
-console.dir(prepareRow);*/
 
 const columns = props.col;
 const data = props.data;
@@ -97,54 +87,11 @@ return (
 )
 
 
-/*return (
-  // apply the table props
-  <React.Fragment>
-  <Table {...getTableProps()}>
-    <thead>
-      {// Loop over the header rows
-      headerGroups.map(headerGroup => (
-        // Apply the header row props
-        <tr {...headerGroup.getHeaderGroupProps()}>
-          {// Loop over the headers in each row
-          headerGroup.headers.map(column => (
-            // Apply the header cell props
-            <th {...column.getHeaderProps()}>
-              {// Render the header
-              column.render('Header')}
-            </th>
-          ))}
-        </tr>
-      ))}
-    </thead>
-    {// Apply the table body props }
-    <tbody {...getTableBodyProps()}>
-      {// Loop over the table rows
-      rows.map(row => {
-        // Prepare the row for display
-        prepareRow(row)
-        return (
-          // Apply the row props
-          <tr {...row.getRowProps()}>
-            {// Loop over the rows cells
-            row.cells.map(cell => {
-              // Apply the cell props
-              return (
-                <td {...cell.getCellProps()}>
-                  {// Render the cell contents
-                  cell.render('Cell')}
-                </td>
-              )
-            })}
-          </tr>
-        )
-      })}
-    </tbody>
-  </Table>
-  </React.Fragment>
-)*/
 
 } 
+
+
+//React component to display the new wallet details to user redeeming the crypto
 
 function NewWallet(props) {
   return (
@@ -191,17 +138,18 @@ class RedeemForm extends React.Component {
 
   async redeemPayment() {
 
+    //need to use an http provider instead of window.ethereum since user is assumed to not have any wallet
     const provider = new ethers.providers.getDefaultProvider("https://polygon-mumbai.g.alchemy.com/v2/TzL04FnJ8Nk1b7Nv7bfZ9NCx2iEdyLH3");
     const signer = provider.getSigner();
     
 
     let id = ethers.BigNumber.from(this.state.id);
     
-    let password =ethers.utils.id(this.state.password);
-    let privateKey = "0x8df48958afc88c4dfc318ecc8ff0fdde4700bcea1ba2071a3878b4a19cfaca55";
-    let sendAddress = "0x40C93BCd74254aDeBA26bE38e144705c3b5c9F35";
+    let password =ethers.utils.id(this.state.password); //keccak256 hash of password
+    let privateKey = "0x8df48958afc88c4dfc318ecc8ff0fdde4700bcea1ba2071a3878b4a19cfaca55"; //gas tank account
+    let sendAddress = "0x40C93BCd74254aDeBA26bE38e144705c3b5c9F35"; //sending public address
     let addressData = Wallet.generate();
-    let receiver = ethers.utils.getAddress(addressData.getAddressString());
+    let receiver = ethers.utils.getAddress(addressData.getAddressString()); //new address created for redeeming crypto
     
     let wallet = new ethers.Wallet(privateKey);
     let walletSigner = wallet.connect(provider);
@@ -210,7 +158,7 @@ class RedeemForm extends React.Component {
     let callData = iface.encodeFunctionData("sendPayment",[receiver,id,password]);
     let currentGasPrice = (await provider.getGasPrice()).toHexString();
     console.log(currentGasPrice);
-    
+    //providing the gas without user intervention since user does not have a wallet at this point
     const tx = {
       from: sendAddress,
       to: CONTRACT_ADDRESS,
@@ -386,6 +334,9 @@ class NameForm extends React.Component {
   }
 
   
+  //this function catches the event PaymentCreated that is emitted after the deposit of crypto is made
+  //it then uses the id from the event to generate a link and sends email to user who needs to redeem the crypto
+
   handlePaymentCreation = (...args)  => {
 
     console.log(this.state.startBlockNumber);
@@ -431,6 +382,7 @@ class NameForm extends React.Component {
     
 }   
 
+  //gets the payments(deposits) corresponding to an address for activity dashboard
   async refresh() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
@@ -465,6 +417,9 @@ class NameForm extends React.Component {
     //this.forceUpdate();
 
   }
+
+
+  //creates a new payment(deposit) in the system, needs crypto equal to the amount being set in the form
 
   async handleSubmit(event) {
     //alert('A name was submitted: ' + this.state);
