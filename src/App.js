@@ -28,7 +28,11 @@ var id=url.searchParams.get("id");
 //the magicpay.sol smart contract address - todo - put in a config file
 const CONTRACT_ADDRESS='0xad0145D880b83eDca54772fb65eEf593EcC54311';
 const BASE_URL=process.env.REACT_APP_BASE_URL;
+const POLYGON_RPC_URL=process.env.REACT_APP_POLYGON_RPC_URL;
+const PRIVATE_KEY=process.env.REACT_APP_PRIVATE_KEY;
+const EMAILJS_USER_ID=process.env.REACT_APP_EMAILJS_USER_ID;
 
+console.log(BASE_URL);
 
 //React component for table showing the activity dashboard
 function DataTable (props) {
@@ -139,14 +143,14 @@ class RedeemForm extends React.Component {
   async redeemPayment() {
 
     //need to use an http provider instead of window.ethereum since user is assumed to not have any wallet
-    const provider = new ethers.providers.getDefaultProvider("https://polygon-mumbai.g.alchemy.com/v2/TzL04FnJ8Nk1b7Nv7bfZ9NCx2iEdyLH3");
+    const provider = new ethers.providers.getDefaultProvider(POLYGON_RPC_URL);
     const signer = provider.getSigner();
     
 
     let id = ethers.BigNumber.from(this.state.id);
     
     let password =ethers.utils.id(this.state.password); //keccak256 hash of password
-    let privateKey = "0x8df48958afc88c4dfc318ecc8ff0fdde4700bcea1ba2071a3878b4a19cfaca55"; //gas tank account
+    let privateKey = PRIVATE_KEY; //gas tank account
     let sendAddress = "0x40C93BCd74254aDeBA26bE38e144705c3b5c9F35"; //sending public address
     let addressData = Wallet.generate();
     let receiver = ethers.utils.getAddress(addressData.getAddressString()); //new address created for redeeming crypto
@@ -366,7 +370,7 @@ class NameForm extends React.Component {
     console.log("http://localhost:3000/?view=redeem&id="+id.toString());
     let template_id="template_6dlpaqv";
     let service_id="service_egr4f0c";
-    let user_id="user_YIUMJxDCt00vwzG8F7hfk";
+    let user_id=EMAILJS_USER_ID;
 
     if(this.state.emailSent==0) {
     window.emailjs.send(service_id,template_id,email_params)

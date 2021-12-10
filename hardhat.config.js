@@ -2,6 +2,10 @@ require("@nomiclabs/hardhat-waffle");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
+
+const POLYGON_RPC_URL=process.env.REACT_APP_POLYGON_RPC_URL;
+const PRIVATE_KEY=process.env.REACT_APP_PRIVATE_KEY;
+
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 
@@ -38,8 +42,8 @@ module.exports = {
       chainId:1337
     },
     mumbai : {
-      url : "https://polygon-mumbai.g.alchemy.com/v2/TzL04FnJ8Nk1b7Nv7bfZ9NCx2iEdyLH3",
-      accounts: ["0x8df48958afc88c4dfc318ecc8ff0fdde4700bcea1ba2071a3878b4a19cfaca55"],
+      url : POLYGON_RPC_URL,
+      accounts: [PRIVATE_KEY],
     }
   }
 };
